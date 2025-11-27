@@ -1,11 +1,35 @@
-<div align="center">
+# WebGPU ReSTIR GI Renderer
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A high-performance WebGPU boilerplate implementing **ReSTIR GI (Reservoir Spatiotemporal Importance Resampling)** for real-time global illumination.
 
-  <h1>Built with AI Studio</h2>
+## 🌟 Features
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+1.  **ReSTIR GI Integration**: 
+    *   Implements **Reservoir Sampling** to intelligently select high-contribution light paths.
+    *   **Temporal Reuse**: Reprojects history buffers to accumulate lighting samples over time.
+    *   **Spatial Reuse**: Borrows samples from neighboring pixels to rapidly converge indirect lighting.
+    
+2.  **Dual-Pass Pipeline (Ping-Pong)**:
+    *   **Integrator Pass**: Renders to an off-screen floating point HDR texture (`rgba16float`).
+    *   **Display Pass**: Performs ACES tonemapping, dithering, and chromatic aberration on the HDR result.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+3.  **React + WebGPU**: 
+    *   Engine logic (Buffers, Pipelines, Loop) is handled in React hooks.
+    *   Shader logic (WGSL) is editable and hot-reloadable.
 
-</div>
+## 🛠 Architecture
+
+*   **`FireRenderer.tsx`**: Manages the `GPUTexture` ping-pong buffers (History A/B). It executes two render passes per frame.
+*   **`constants.ts`**: Contains the WGSL shader.
+    *   `fs_main`: The **Integrator**. Raymarches the scene, calculates direct light, traces secondary rays, and performs ReSTIR logic.
+    *   `fs_display`: The **Post-Processor**.
+
+## 🎮 Controls
+
+*   **GI Intensity**: Controls the brightness of the indirect bounce.
+*   **Roughness**: Controls the material properties.
+*   **Anim Speed**: Speeds up the SDF deformation (note: fast motion may cause temporal lag/ghosting).
+
+## ⚠️ Notes
+*   This implementation assumes a static camera-to-world projection for temporal reuse (no motion vectors), so rapid camera movement may streak.
+*   Spatial reuse uses a simplified neighborhood kernel.
